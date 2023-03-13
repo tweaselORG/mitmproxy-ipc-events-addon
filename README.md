@@ -8,10 +8,10 @@ This addon is only supported on POSIX environments and **does not work on Window
 
 ## Usage
 
-To use the addon, you need to start mitmproxy with the addon. Also, the addon expects an environment variable `IPC_PIPE_FD` set to the number of a file descriptor that belongs to the pipe the addons is supposed to write the IPC messages to. Make sure the addon has the permissions to write to this file descriptor. It could look like this:
+To use the addon, you need to start mitmproxy with the addon. Also, the addon expects an option `ipcPipeFd` set to the number of a file descriptor that belongs to the pipe the addons is supposed to write the IPC messages to. Make sure the addon has the permissions to write to this file descriptor. It could look like this:
 
 ```zsh
-export IPC_PIPE_FD=42; mitmproxy -s ipc_events_addon.py
+mitmproxy -s ipc_events_addon.py --set ipcPipeFd=42
 ```
 
 If you want to use the addon with nodejs as intended, here is an example of how it comes together:
@@ -19,9 +19,8 @@ If you want to use the addon with nodejs as intended, here is an example of how 
 ```js
 const { spawn } = require('child_process');
 
-const proc = spawn('mitmproxy', ['-s ./ipc_events_addon.py'], {
+const proc = spawn('mitmproxy', ['-s ./ipc_events_addon.py', '--set', 'ipcPipeFd=3'], {
     stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
-    env: { PATH: process.env.PATH, IPC_PIPE_FD: 3 },
 });
 
 proc.on('message', (msg) => console.log(msg));

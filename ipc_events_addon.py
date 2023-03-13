@@ -1,29 +1,32 @@
 """
 This is an addon for mitmproxy that sends events as nodejs-compatible IPC messages to a pipe.
 
-The file descriptor of the pipe to send the messages to needs to be configured as an environment variable: IPC_PIPE_FD
-If the variable is not set, the addon will do nothing.
+The file descriptor of the pipe to send the messages to needs to be configured as a mitmproxy option: ipcPipeFd
+If the option is not set, the addon will do nothing.
 
 To use the addon, start mitmproxy like this:
 
-export IPC_PIPE_FD=42; mitmproxy -s ipc_events_addon.py
+mitmproxy -s ipc_events_addon.py --set ipcPipeFd=42
 """
 
 import os
 import json
+from mitmproxy import ctx
 
 class IpcEventRelay:
-    pipe_fd = None
-
-    def __init__(self):
-        if ('IPC_PIPE_FD' in os.environ):
-            self.pipe_fd = int(os.environ['IPC_PIPE_FD'])
+    def load(self, loader):
+        loader.add_option(
+            name="ipcPipeFd",
+            typespec=int,
+            default=False,
+            help="The file descriptor to write the IPC messages to",
+        )
 
 
     def _sendIpcMessage(self, message):
         """Takes a dict and sends it through a pipe as JSON."""
-        if(self.pipe_fd is not None):
-            os.write(self.pipe_fd, bytes(json.dumps(message) + '\n', 'utf8'))
+        if(ctx.options.ipcPipeFd is not None):
+            os.write(ctx.options.ipcPipeFd, bytes(json.dumps(message) + '\n', 'utf8'))
 
     def running(self):
         self._sendIpcMessage({"status": "running"})
