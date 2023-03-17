@@ -35,15 +35,15 @@ class IpcEventRelay:
         self._sendIpcMessage({"status": "done"})
 
     def client_connected(self, client):
-        self._sendIpcMessage({"status": "client_connected", "context": {"address": client.peername} })
+        self._sendIpcMessage({"status": "clientConnected", "context": {"address": client.peername} })
 
     def client_disconnected(self, client):
-        self._sendIpcMessage({"status": "client_disconnected", "context": {"address": client.peername} })
+        self._sendIpcMessage({"status": "clientDisconnected", "context": {"address": client.peername} })
 
     def tls_failed_client(self, data):
-        self._sendIpcMessage({"status": "tls_failed", "context": {"client_address": data.context.client.peername, "server_address": data.context.server.address, "error": data.conn.error }})
+        self._sendIpcMessage({"status": "tlsFailed", "context": {"clientAddress": data.context.client.peername, "serverAddress": data.context.server.address, "error": data.conn.error }})
 
     def tls_established_client(self, data):
-        self._sendIpcMessage({"status": "tls_established", "context": {"client_address": data.context.client.peername, "server_address": data.context.server.address}})
+        self._sendIpcMessage({"status": "tlsEstablished", "context": {"clientAddress": data.context.client.peername, "serverAddress": data.context.server.address}})
 
 addons = [IpcEventRelay()]
