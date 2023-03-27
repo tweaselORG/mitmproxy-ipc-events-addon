@@ -12,6 +12,8 @@ mitmproxy -s ipc_events_addon.py --set ipcPipeFd=42
 import os
 import json
 from mitmproxy import ctx
+import logging
+
 
 class IpcEventRelay:
     def load(self, loader):
@@ -21,7 +23,10 @@ class IpcEventRelay:
             default=False,
             help="The file descriptor to write the IPC messages to",
         )
-
+        # This uses an internal API found in mitmproxy/tools/web/master.py
+        # See https://github.com/mitmproxy/mitmproxy/blob/8f1329377147538afdf06344179c2fd90795e93a/mitmproxy/tools/web/master.py#L55
+        self.proxyserver = loader.master.addons.get("proxyserver")
+        self.proxyserver.servers.changed.connect(self.server_changed)
 
     def _sendIpcMessage(self, message):
         """Takes a dict and sends it through a pipe as JSON."""
@@ -45,5 +50,8 @@ class IpcEventRelay:
 
     def tls_established_client(self, data):
         self._sendIpcMessage({"status": "tlsEstablished", "context": {"clientAddress": data.context.client.peername, "serverAddress": data.context.server.address}})
+
+    def server_changed(self):
+        self._sendIpcMessage({"status": "proxyChanged", "servers":  [s.to_json() for s in self.proxyserver.servers]})
 
 addons = [IpcEventRelay()]
